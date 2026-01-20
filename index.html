@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>教育標楷完全版 - 按鈕加粗與特效強化版</title>
+    <title>教育標楷完全版 - 具名匯出與介面優化版</title>
     <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
@@ -18,13 +18,12 @@
         .hidden { display: none !important; }
         
         .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab { flex: 1; text-align: center; padding: 12px; cursor: pointer; color: var(--text-light); background: #f8f9fa; border-radius: 15px; font-weight: bold; } /* 按鈕加粗 */
+        .tab { flex: 1; text-align: center; padding: 12px; cursor: pointer; color: var(--text-light); background: #f8f9fa; border-radius: 15px; font-weight: bold; }
         .tab.active { color: var(--text-dark); background: var(--p-blue); }
         
         label { display: block; text-align: left; color: var(--text-light); font-size: 14px; margin-top: 10px; }
         input, textarea, select { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #f1f3f5; border-radius: 15px; box-sizing: border-box; font-size: 16px; background: #fff; font-family: inherit; }
         
-        /* 🌟 所有按鈕加粗 */
         button { cursor: pointer; border: none; border-radius: 15px; padding: 12px; transition: 0.2s; font-family: inherit; font-weight: bold; }
         .btn-start { background: var(--p-blue); width: 100%; margin-top: 15px; font-size: 18px; padding: 15px; }
 
@@ -38,19 +37,14 @@
         .cell.correct { background: var(--p-blue) !important; color: var(--accent-blue) !important; }
         .cell.wrong { background: var(--p-orange) !important; color: var(--accent-orange) !important; animation: shake 0.3s; }
 
-        /* 🌟 結算時：集體彈跳 + 縮放 + 深藍外框 */
         .cell.reveal-bounce { 
             z-index: 100;
-            border: 3px solid var(--accent-blue) !important; /* 加上框 */
+            border: 3px solid var(--accent-blue) !important; 
             box-shadow: 0 0 10px rgba(43, 108, 176, 0.3);
             animation: final-pop-with-border 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.1) infinite alternate;
         }
 
-        @keyframes final-pop-with-border { 
-            0% { transform: scale(1); } 
-            100% { transform: scale(1.15); } 
-        }
-
+        @keyframes final-pop-with-border { 0% { transform: scale(1); } 100% { transform: scale(1.15); } }
         @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
 
         .speed-controls { display: flex; gap: 8px; margin: 15px 0; }
@@ -59,7 +53,7 @@
         
         #writer-target { background: #fff; border: 4px solid var(--p-yellow); border-radius: 25px; margin: 15px auto; width: 300px; height: 300px; display: flex; align-items: center; justify-content: center; }
         .word-picker { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
-        .pick-item { padding: 10px 15px; background: white; border: 2px solid var(--p-orange); border-radius: 10px; cursor: pointer; font-size: 24px; font-family: "標楷體"; font-weight: normal; }
+        .pick-item { padding: 10px 15px; background: white; border: 2px solid var(--p-orange); border-radius: 10px; cursor: pointer; font-size: 24px; font-family: "標楷體"; }
         .pick-item.active { background: var(--p-orange); color: var(--accent-orange); }
 
         #winOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; display: none; }
@@ -86,7 +80,7 @@
         
         <div style="display:flex; gap:8px;">
             <button style="flex:1; background:var(--p-green);" onclick="saveData()">💾 儲存</button>
-            <button style="background:var(--p-orange);" onclick="exportData()">📤 匯出</button>
+            <button style="background:var(--p-orange);" onclick="exportNamedData()">📤 匯出</button>
             <button style="background:#e9ecef;" onclick="document.getElementById('importFile').click()">📥 讀取</button>
             <input type="file" id="importFile" class="hidden" onchange="importData(event)">
         </div>
@@ -102,7 +96,7 @@
             <select id="gridSize">
                 <option value="4">⭐ 入門 (4x4)</option>
                 <option value="5">⭐⭐ 進階 (5x5)</option>
-                <option value="6">⭐⭐⭐ 挑戰 (6x6)</option>
+                <option value="6">⭐⭐挑戰 (6x6)</option>
                 <option value="7">🏆 高手 (7x7)</option>
                 <option value="8">🔥 專家 (8x8)</option>
                 <option value="9">👑 傳說 (9x9)</option>
@@ -149,10 +143,39 @@
         function playTone(freq, duration) { initAudio(); try { const o = audioCtx.createOscillator(); const g = audioCtx.createGain(); o.type = 'sine'; o.frequency.value = freq; g.gain.setValueAtTime(0.1, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration); o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + duration); } catch(e) {} }
 
         (function init() { refreshDropdown(); })();
-        function refreshDropdown() { const select = document.getElementById('lessonSelect'); select.innerHTML = '<option value="">-- 選取存檔 --</option>'; Object.keys(db).sort().forEach(name => { select.innerHTML += `<option value="${name}">${name}</option>`; }); }
-        function loadLesson() { const name = document.getElementById('lessonSelect').value; if (name) document.getElementById('wordsInput').value = db[name]; }
-        function saveData() { const words = document.getElementById('wordsInput').value.trim(); if(!words) return; let name = document.getElementById('lessonSelect').value || prompt("存檔名稱："); if(!name) return; db[name] = words; localStorage.setItem(DB_KEY, JSON.stringify(db)); refreshDropdown(); document.getElementById('lessonSelect').value = name; }
         
+        // 🌟 調整下拉選單預設文字
+        function refreshDropdown() { 
+            const select = document.getElementById('lessonSelect'); 
+            select.innerHTML = '<option value="">[ 新增檔案 ]</option>'; 
+            Object.keys(db).sort().forEach(name => { select.innerHTML += `<option value="${name}">${name}</option>`; }); 
+        }
+
+        function loadLesson() { const name = document.getElementById('lessonSelect').value; if (name) document.getElementById('wordsInput').value = db[name]; else document.getElementById('wordsInput').value = ""; }
+        
+        function saveData() { 
+            const words = document.getElementById('wordsInput').value.trim(); 
+            if(!words) return; 
+            let name = document.getElementById('lessonSelect').value || prompt("存檔名稱："); 
+            if(!name) return; 
+            db[name] = words; 
+            localStorage.setItem(DB_KEY, JSON.stringify(db)); 
+            refreshDropdown(); 
+            document.getElementById('lessonSelect').value = name; 
+        }
+
+        // 🌟 具名匯出功能
+        function exportNamedData() {
+            const currentName = document.getElementById('lessonSelect').value || "生字備份";
+            const exportName = prompt("請輸入匯出的檔案名稱：", currentName);
+            if (!exportName) return;
+            const blob = new Blob([JSON.stringify(db, null, 2)], {type: "application/json"});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `${exportName}.json`;
+            a.click();
+        }
+
         function renameWithPass() {
             const select = document.getElementById('lessonSelect');
             if(!select.value) return;
@@ -267,7 +290,6 @@
         }
 
         function speak(mode) { window.speechSynthesis.cancel(); const text = (mode === 'study') ? studyList[studyIdx] : targetChar; const msg = new SpeechSynthesisUtterance(text); msg.lang = 'zh-TW'; msg.rate = 0.8; window.speechSynthesis.speak(msg); }
-        function exportData() { const blob = new Blob([JSON.stringify(db, null, 2)], {type: "application/json"}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `生字備份.json`; a.click(); }
         function importData(e) { const reader = new FileReader(); reader.onload = (ev) => { db = {...db, ...JSON.parse(ev.target.result)}; localStorage.setItem(DB_KEY, JSON.stringify(db)); refreshDropdown(); }; reader.readAsText(e.target.files[0]); }
         function exitToMenu() { clearInterval(gameTimer); document.querySelectorAll('.main-container').forEach(c => c.classList.add('hidden')); document.getElementById('editorPanel').classList.remove('hidden'); }
         function closeWinOverlay() { document.getElementById('winOverlay').style.display = 'none'; exitToMenu(); }
