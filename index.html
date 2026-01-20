@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>教育標楷完全版 - 具名匯出與介面優化版</title>
+    <title>教育標楷完全版 - 新增按鈕獨立版</title>
     <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
@@ -69,13 +69,20 @@
         </div>
 
         <div style="display:flex; justify-content: space-between; align-items: flex-end;">
-            <label>📁 課程存檔</label>
+            <label>📁 課程管理</label>
             <div style="display:flex; gap:5px; margin-bottom:5px;">
                 <button onclick="renameWithPass()" style="padding:4px 8px; font-size:12px; background:var(--p-blue);">✏️ 改名</button>
                 <button onclick="deleteWithPass()" style="padding:4px 8px; font-size:12px; background:var(--p-red); color:#fa5252;">🗑️ 刪除</button>
             </div>
         </div>
-        <select id="lessonSelect" onchange="loadLesson()"></select>
+        
+        <div style="display:flex; gap:8px; align-items: center;">
+            <select id="lessonSelect" onchange="loadLesson()" style="flex:1;">
+                <option value="">-- 選取課程 --</option>
+            </select>
+            <button onclick="addNewLesson()" style="background:var(--p-yellow); padding: 12px 15px; white-space: nowrap;">➕ 新增</button>
+        </div>
+
         <textarea id="wordsInput" rows="3" placeholder="輸入生字，用逗號或換行隔開"></textarea>
         
         <div style="display:flex; gap:8px;">
@@ -96,7 +103,7 @@
             <select id="gridSize">
                 <option value="4">⭐ 入門 (4x4)</option>
                 <option value="5">⭐⭐ 進階 (5x5)</option>
-                <option value="6">⭐⭐挑戰 (6x6)</option>
+                <option value="6">⭐⭐⭐ 挑戰 (6x6)</option>
                 <option value="7">🏆 高手 (7x7)</option>
                 <option value="8">🔥 專家 (8x8)</option>
                 <option value="9">👑 傳說 (9x9)</option>
@@ -144,27 +151,39 @@
 
         (function init() { refreshDropdown(); })();
         
-        // 🌟 調整下拉選單預設文字
         function refreshDropdown() { 
             const select = document.getElementById('lessonSelect'); 
-            select.innerHTML = '<option value="">[ 新增檔案 ]</option>'; 
+            select.innerHTML = '<option value="">-- 選取課程 --</option>'; 
             Object.keys(db).sort().forEach(name => { select.innerHTML += `<option value="${name}">${name}</option>`; }); 
         }
 
-        function loadLesson() { const name = document.getElementById('lessonSelect').value; if (name) document.getElementById('wordsInput').value = db[name]; else document.getElementById('wordsInput').value = ""; }
-        
-        function saveData() { 
-            const words = document.getElementById('wordsInput').value.trim(); 
-            if(!words) return; 
-            let name = document.getElementById('lessonSelect').value || prompt("存檔名稱："); 
-            if(!name) return; 
-            db[name] = words; 
-            localStorage.setItem(DB_KEY, JSON.stringify(db)); 
-            refreshDropdown(); 
-            document.getElementById('lessonSelect').value = name; 
+        // 🌟 新增按鈕功能
+        function addNewLesson() {
+            const name = prompt("請輸入新課程名稱：");
+            if (!name) return;
+            if (db[name]) { alert("課程名稱已存在！"); return; }
+            db[name] = ""; // 建立空白課程
+            localStorage.setItem(DB_KEY, JSON.stringify(db));
+            refreshDropdown();
+            document.getElementById('lessonSelect').value = name;
+            document.getElementById('wordsInput').value = "";
+            document.getElementById('wordsInput').focus();
         }
 
-        // 🌟 具名匯出功能
+        function loadLesson() { 
+            const name = document.getElementById('lessonSelect').value; 
+            document.getElementById('wordsInput').value = name ? db[name] : ""; 
+        }
+        
+        function saveData() { 
+            const name = document.getElementById('lessonSelect').value;
+            const words = document.getElementById('wordsInput').value.trim();
+            if (!name) { alert("請先選擇課程或點擊「新增」"); return; }
+            db[name] = words; 
+            localStorage.setItem(DB_KEY, JSON.stringify(db)); 
+            alert("儲存成功！");
+        }
+
         function exportNamedData() {
             const currentName = document.getElementById('lessonSelect').value || "生字備份";
             const exportName = prompt("請輸入匯出的檔案名稱：", currentName);
