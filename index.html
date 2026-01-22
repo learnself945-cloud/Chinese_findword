@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>教育標楷完全版 - 介面優化版</title>
+    <title>教育標楷完全版 - 學習模式分頁版</title>
     <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
@@ -17,11 +17,6 @@
         .main-container { background: rgba(255, 255, 255, 0.9); padding: 25px; border-radius: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 500px; box-sizing: border-box; margin-bottom: 10px; text-align: center; border: 2px solid #fff; position: relative; }
         .hidden { display: none !important; }
         
-        /* 管理區樣式 */
-        .mgmt-section { background: #fdfdfd; padding: 15px; border-radius: 20px; border: 1px solid #eee; margin-bottom: 10px; }
-        .edit-area { background: #fff; padding: 20px; border-radius: 25px; border: 2px solid var(--p-blue); margin-top: 20px; animation: fadeIn 0.3s; }
-        
-        /* 標籤切換 */
         .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
         .tab { flex: 1; text-align: center; padding: 12px; cursor: pointer; color: var(--text-light); background: #f8f9fa; border-radius: 15px; font-weight: bold; }
         .tab.active { color: var(--text-dark); background: var(--p-blue); }
@@ -29,227 +24,259 @@
         button { cursor: pointer; border: none; border-radius: 15px; padding: 12px; transition: 0.2s; font-family: inherit; font-weight: bold; }
         .btn-start { background: var(--p-blue); width: 100%; margin-top: 15px; font-size: 18px; padding: 15px; }
 
-        /* 字卡選擇器 */
         .target-picker { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; justify-content: center; max-height: 120px; overflow-y: auto; padding: 5px; border: 1px dashed var(--p-blue); border-radius: 15px; }
-        .target-item { padding: 8px 15px; background: white; border: 2px solid var(--p-blue); border-radius: 10px; cursor: pointer; font-family: "標楷體"; font-size: 20px; }
+        .target-item { padding: 8px 15px; background: white; border: 2px solid var(--p-blue); border-radius: 10px; cursor: pointer; font-family: "標楷體"; font-size: 20px; transition: 0.2s; }
         .target-item.active { background: var(--accent-blue); color: white; border-color: var(--accent-blue); }
 
-        input, textarea, select { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #f1f3f5; border-radius: 15px; box-sizing: border-box; font-size: 16px; background: #fff; }
-        label { display: block; text-align: left; color: var(--text-light); font-size: 14px; margin-top: 10px; }
-
-        /* 遊戲與學習容器 */
-        #writer-container, #quiz-container { background: #fff; border: 4px solid var(--p-yellow); border-radius: 25px; margin: 15px auto; width: 300px; height: 300px; display: flex; align-items: center; justify-content: center; }
-        .grid-container { display: grid; gap: 4px; background: var(--p-yellow); padding: 8px; border-radius: 25px; margin: 15px auto; width: 100%; aspect-ratio: 1/1; box-sizing: border-box; }
-        .cell { background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid #eee; font-family: "標楷體"; transition: 0.2s; }
-        .cell.correct { background: var(--p-blue) !important; color: var(--accent-blue) !important; }
-        .cell.wrong { background: var(--p-orange) !important; animation: shake 0.3s; }
-        
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
-
+        /* 學習分頁專屬樣式 */
         .study-sub-tabs { display: flex; gap: 5px; margin: 0 auto 15px; width: 80%; background: #eee; border-radius: 10px; padding: 4px; }
-        .sub-tab { flex: 1; padding: 8px; font-size: 14px; cursor: pointer; border-radius: 8px; }
-        .sub-tab.active { background: white; color: var(--accent-blue); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .sub-tab { flex: 1; padding: 8px; font-size: 14px; cursor: pointer; border-radius: 8px; transition: 0.2s; }
+        .sub-tab.active { background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); color: var(--accent-blue); }
+
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 2000; }
+        .modal-content { background: white; padding: 25px; border-radius: 25px; width: 85%; max-width: 400px; }
+
+        .grid-container { display: grid; gap: 4px; background: var(--p-yellow); padding: 8px; border-radius: 25px; margin: 15px auto; width: 100%; aspect-ratio: 1/1; box-sizing: border-box; }
+        .cell { 
+            background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; 
+            cursor: pointer; border: 1px solid #eee; font-family: "標楷體", "DFKai-SB", sans-serif; 
+            transition: background 0.2s; line-height: 1;
+        }
+
+        .cell.correct { background: var(--p-blue) !important; color: var(--accent-blue) !important; animation: correct-pop 0.4s ease-out; }
+        .cell.wrong { background: var(--p-orange) !important; color: var(--accent-orange) !important; animation: shake 0.3s; }
+        .cell.reveal-bounce { z-index: 100; border: 3px solid var(--accent-blue) !important; animation: final-pop-with-border 0.6s infinite alternate; }
+
+        @keyframes correct-pop { 0% { transform: scale(1); } 30% { transform: scale(1.2); } 100% { transform: scale(1); } }
+        @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
+        @keyframes final-pop-with-border { 0% { transform: scale(1); } 100% { transform: scale(1.1); } }
+
+        label { display: block; text-align: left; color: var(--text-light); font-size: 14px; margin-top: 10px; }
+        input, textarea, select { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #f1f3f5; border-radius: 15px; box-sizing: border-box; font-size: 16px; background: #fff; font-family: inherit; }
         
+        .voice-toggle-wrap { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 10px 0; font-weight: bold; }
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent-blue); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        #writer-container, #quiz-container { background: #fff; border: 4px solid var(--p-yellow); border-radius: 25px; margin: 15px auto; width: 300px; height: 300px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         .word-picker { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
         .pick-item { padding: 10px 15px; background: white; border: 2px solid var(--p-orange); border-radius: 10px; cursor: pointer; font-size: 24px; font-family: "標楷體"; }
         .pick-item.active { background: var(--p-orange); color: var(--accent-orange); }
 
         #winOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; display: none; }
         .win-card { background: white; padding: 30px; border-radius: 40px; text-align: center; }
+        .footer-note { font-size: 13px; color: var(--text-light); margin: 10px 0 20px 0; }
+        
+        .error-counter { color: #fa5252; font-weight: bold; margin-left: 15px; }
         .setting-row { display: flex; gap: 10px; align-items: center; }
     </style>
 </head>
 <body onclick="initAudio()">
 
     <div class="main-container" id="editorPanel">
-        <div class="mgmt-section">
-            <div style="display:flex; justify-content: space-between; align-items: center;">
-                <label style="margin:0;">📁 單元選擇</label>
-                <div style="display:flex; gap:5px;">
-                    <button onclick="renameWithPass()" style="padding:4px 8px; font-size:12px; background:var(--p-blue);">✏️ 改名</button>
-                    <button onclick="deleteWithPass()" style="padding:4px 8px; font-size:12px; background:var(--p-red); color:#fa5252;">🗑️ 刪除</button>
-                </div>
-            </div>
-            
-            <div style="display:flex; gap:8px; align-items: center; margin-bottom: 8px;">
-                <select id="lessonSelect" onchange="handleSelectChange()" style="flex:1; margin:0;"><option value="">-- 請先選取或新增單元 --</option></select>
-                <button onclick="addNewLesson()" style="background:var(--accent-blue); color:white; padding: 12px 15px;">➕ 新增</button>
-            </div>
-
-            <div style="display:flex; gap:8px;">
-                <button style="background:#e9ecef; flex:1;" onclick="document.getElementById('importFile').click()">📥 讀取備份</button>
-                <button style="background:#e9ecef; flex:1;" onclick="exportNamedData()">📤 匯出備份</button>
-                <input type="file" id="importFile" class="hidden" onchange="importData(event)">
-            </div>
+        <div class="nav-tabs">
+            <div class="tab" id="tab-study" onclick="switchTab('study')">📖 學習模式</div>
+            <div class="tab active" id="tab-game" onclick="switchTab('game')">🎮 找字遊戲</div>
         </div>
 
-        <div id="editArea" class="edit-area hidden">
-            <h3 id="currentLessonTitle" style="margin:0 0 10px 0; color:var(--accent-blue);">單元名稱</h3>
+        <div style="display:flex; justify-content: space-between; align-items: flex-end;">
+            <label>📁 課程管理</label>
+            <div style="display:flex; gap:5px; margin-bottom:5px;">
+                <button onclick="renameWithPass()" style="padding:4px 8px; font-size:12px; background:var(--p-blue);">✏️ 改名</button>
+                <button onclick="deleteWithPass()" style="padding:4px 8px; font-size:12px; background:var(--p-red); color:#fa5252;">🗑️ 刪除</button>
+            </div>
+        </div>
+        
+        <div style="display:flex; gap:8px; align-items: center;">
+            <select id="lessonSelect" onchange="loadLesson()" style="flex:1;"><option value="">-- 選取課程 --</option></select>
+            <button onclick="addNewLesson()" style="background:var(--p-yellow); padding: 12px 15px;">➕ 新增</button>
+        </div>
+
+        <textarea id="wordsInput" rows="3" placeholder="輸入生字，用逗號或換行隔開" oninput="refreshTargetCards()"></textarea>
+        
+        <div style="display:flex; gap:8px;">
+            <button style="flex:1; background:var(--p-green);" onclick="saveData()">💾 儲存</button>
+            <button style="background:var(--p-orange);" onclick="exportNamedData()">📤 匯出</button>
+            <button style="background:#e9ecef;" onclick="document.getElementById('importFile').click()">📥 讀取</button>
+            <input type="file" id="importFile" class="hidden" onchange="importData(event)">
+        </div>
+
+        <div id="studyConfig" class="hidden">
+            <button class="btn-start" onclick="startStudy()">開始筆順學習 ✨</button>
+        </div>
+
+        <div id="gameConfig">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                <label>1. 指定目標 (點選字卡或輸入)</label>
+                <button onclick="toggleConfusionModal()" style="font-size:12px; padding:4px 10px; background:var(--p-purple); color:var(--accent-purple);">🧩 設定易混淆字</button>
+            </div>
             
-            <label>✏️ 輸入生字內容</label>
-            <textarea id="wordsInput" rows="3" placeholder="輸入本課生字，用逗號或換行隔開" oninput="refreshTargetCards()"></textarea>
+            <div class="target-picker" id="targetCards"></div>
+            <input type="text" id="manualTarget" maxlength="1" placeholder="或在此輸入單字" style="text-align:center;" oninput="clearCardSelection()">
             
-            <button style="width:100%; background:var(--p-green); color:#2b8a3e; margin-bottom: 20px;" onclick="saveData()">💾 儲存生字</button>
-
-            <div class="nav-tabs">
-                <div class="tab" id="tab-study" onclick="switchTab('study')">📖 學習模式</div>
-                <div class="tab active" id="tab-game" onclick="switchTab('game')">🎮 找字遊戲</div>
-            </div>
-
-            <div id="studyConfig" class="hidden">
-                <button class="btn-start" onclick="startStudy()">進入筆順教學 ✨</button>
-            </div>
-
-            <div id="gameConfig">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <label>1. 指定找尋目標</label>
-                    <button onclick="toggleConfusionModal()" style="font-size:12px; padding:4px 10px; background:var(--p-purple); color:var(--accent-purple);">🧩 設定干擾字</button>
+            <div class="setting-row">
+                <div style="flex:2;">
+                    <label>2. 難度等級</label>
+                    <select id="gridSize" onchange="handleDifficultyChange(this.value)">
+                        <option value="4">⭐ 入門 (4x4)</option>
+                        <option value="5">⭐⭐ 進階 (5x5)</option>
+                        <option value="6">⭐⭐⭐ 挑戰 (6x6)</option>
+                        <option value="7">🎖️ 高手 (7x7)</option>
+                        <option value="8" selected>🔥 專家 (8x8)</option>
+                        <option value="9">👑 傳說 (9x9)</option>
+                    </select>
                 </div>
-                <div class="target-picker" id="targetCards"></div>
-                <input type="text" id="manualTarget" maxlength="1" placeholder="或手打單字" style="text-align:center;" oninput="clearCardSelection()">
-                
-                <div class="setting-row">
-                    <div style="flex:2;">
-                        <label>2. 遊戲難度</label>
-                        <select id="gridSize" onchange="handleDifficultyChange(this.value)">
-                            <option value="4">⭐ 入門 (4x4)</option>
-                            <option value="6">⭐⭐ 挑戰 (6x6)</option>
-                            <option value="8" selected>🔥 專家 (8x8)</option>
-                        </select>
-                    </div>
-                    <div style="flex:1;">
-                        <label>3. 錯誤上限</label>
-                        <input type="number" id="maxErrorsInput" value="5" readonly onclick="checkPassToEditErrors(this)" style="text-align:center; background:#fff5f5; color:#fa5252; font-weight:bold;">
-                    </div>
+                <div style="flex:1;">
+                    <label>3. 錯誤上限</label>
+                    <input type="number" id="maxErrorsInput" value="5" min="1" max="99" 
+                           onclick="checkPassToEditErrors(this)" 
+                           onfocus="this.blur()" 
+                           style="text-align:center; background:#fff5f5; color:#fa5252; font-weight:bold; border:2px solid #ffc9c9;">
                 </div>
-                <button class="btn-start" style="background:var(--p-yellow);" onclick="startGame()">開始找字遊戲 🚀</button>
             </div>
+            
+            <button class="btn-start" style="background:var(--p-yellow);" onclick="startGame()">進入遊戲 🚀</button>
         </div>
     </div>
 
     <div class="main-container hidden" id="flashcardView">
         <div class="study-sub-tabs">
-            <div class="sub-tab active" id="subtab-view" onclick="setStudyMode('view')">👀 示範</div>
-            <div class="sub-tab" id="subtab-quiz" onclick="setStudyMode('quiz')">✍️ 測驗</div>
+            <div class="sub-tab active" id="subtab-view" onclick="setStudyMode('view')">👀 示範動畫</div>
+            <div class="sub-tab" id="subtab-quiz" onclick="setStudyMode('quiz')">✍️ 筆順測驗</div>
         </div>
+
         <div id="viewModeArea">
-            <div id="writer-container"></div>
+            <div id="writer-container" onclick="updateFlashcard()"></div>
             <div style="display:flex; gap:10px; justify-content:center; margin-bottom:10px;">
-                <button onclick="changeSpeed(0.5)">🐢</button>
-                <button onclick="changeSpeed(1.0)" style="background:var(--p-blue);">🚶</button>
-                <button onclick="changeSpeed(2.0)">🏃</button>
+                <button class="speed-btn" onclick="changeSpeed(0.5)">🐢 慢</button>
+                <button class="speed-btn" onclick="changeSpeed(1.0)" style="background:var(--p-blue);">🚶 中</button>
+                <button class="speed-btn" onclick="changeSpeed(2.0)">🏃 快</button>
             </div>
         </div>
+
         <div id="quizModeArea" class="hidden">
             <div id="quiz-container"></div>
+            <div style="margin-bottom:10px; color:var(--text-light); font-size:14px;">請依照筆順在方框內書寫</div>
         </div>
-        <h1 id="currentWord" style="font-size:60px; margin:10px 0; font-family:'標楷體'; font-weight:normal;" onclick="speak(this.innerText, true)">-</h1>
+
+        <h1 id="currentWord" style="font-size:60px; margin:10px 0; font-family:'標楷體'; font-weight: normal;" onclick="speak(this.innerText, true)">-</h1>
         <div class="word-picker" id="wordPicker"></div>
         <button onclick="exitToMenu()" style="width:100%; margin-top:20px; background:#f1f3f5;">◀ 返回選單</button>
     </div>
 
     <div class="main-container hidden" id="gameView">
-        <div id="gameTarget" onclick="speak(this.innerText, true)" style="font-size:80px; color:var(--accent-blue); font-family:'標楷體'; font-weight:normal;">?</div>
+        <div class="voice-toggle-wrap">
+            <span>🔊 點字朗讀</span>
+            <label class="switch"><input type="checkbox" id="voiceToggle"><span class="slider"></span></label>
+        </div>
+        <div style="font-size: 18px; display: flex; justify-content: center; gap: 20px;">
+            <span>⏱ <span id="timeVal">0.0</span>s</span>
+            <span class="error-counter">❌ 錯誤：<span id="errorVal">0</span>/<span id="maxErrorDisplay">5</span></span>
+        </div>
+        <div id="gameTarget" onclick="speak(this.innerText, true)" style="font-size:80px; color:var(--accent-blue); font-family:'標楷體'; font-weight: normal; cursor:pointer; margin:10px 0;">?</div>
         <div id="grid" class="grid-container"></div>
-        <div id="status" style="font-weight:bold;">剩餘：-</div>
-        <button onclick="exitToMenu()" style="margin-top:15px; width:100%; background:#f1f3f5;">放棄遊戲</button>
+        <div id="status" style="margin-top:10px; font-weight: bold;">剩餘：-</div>
+        <button onclick="exitToMenu()" style="margin-top:15px; width:100%; background:#f1f3f5;">放棄</button>
     </div>
 
-    <div id="winOverlay"><div class="win-card"><h2 id="winTitle" style="color:var(--accent-orange);">🎊 任務完成！</h2><div id="winMsg" style="font-size:20px; margin:20px 0;"></div><button class="btn-start" onclick="closeWinOverlay()">確定</button></div></div>
-    <div id="confusionModal" class="modal hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index:2000;">
-        <div class="modal-content" style="background:white; padding:25px; border-radius:25px; width:80%; max-width:300px;">
-            <h3>🧩 設定干擾字</h3>
+    <div id="winOverlay">
+        <div class="win-card">
+            <div id="winTitle" style="font-size:36px; color:var(--accent-orange); font-weight:bold;">🎊 任務完成！ 🎊</div>
+            <div id="winMsg" style="font-size:24px; margin:20px 0;">總耗時：<span id="finalTime">0.0</span> 秒</div>
+            <button class="btn-start" onclick="closeWinOverlay()">確定</button>
+        </div>
+    </div>
+
+    <div id="confusionModal" class="modal hidden">
+        <div class="modal-content">
+            <h3 style="margin-top:0; color:var(--accent-purple);">🧩 設定易混淆字</h3>
             <textarea id="confusionInput" rows="3" placeholder="例如：王,玉,主"></textarea>
             <button onclick="toggleConfusionModal()" style="width:100%; background:#eee;">關閉</button>
         </div>
     </div>
 
+    <div class="footer-note">遊戲設計者：陳欣宜 & Gemini 協作</div>
+
     <script>
         const DB_KEY = 'teacher_lesson_v2026';
         const ADMIN_PASS = '888';
         let db = JSON.parse(localStorage.getItem(DB_KEY) || '{}');
-        let studyList = [], studyIdx = 0, targetChar, foundNum, targetTotal, currentSpeed = 1.0, audioCtx = null;
-        let manualSelectedChar = "", errorCount = 0, maxErrors = 5, studyMode = 'view', mainWriter = null;
+        let studyList = [], studyIdx = 0, gameTimer, gameStart, targetChar, foundNum, targetTotal, currentSpeed = 1.0, audioCtx = null;
+        let manualSelectedChar = "", errorCount = 0, maxErrors = 5;
+        let studyMode = 'view'; // 'view' or 'quiz'
+        let mainWriter = null;
 
         function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
         function playTone(freq, duration) { initAudio(); try { const o = audioCtx.createOscillator(); const g = audioCtx.createGain(); o.type = 'sine'; o.frequency.value = freq; g.gain.setValueAtTime(0.1, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration); o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + duration); } catch(e) {} }
-        function speak(text, force = false) { window.speechSynthesis.cancel(); const msg = new SpeechSynthesisUtterance(text); msg.lang = 'zh-TW'; msg.rate = 0.8; window.speechSynthesis.speak(msg); }
+        function speak(text, force = false) { if(!force && !document.getElementById('voiceToggle').checked) return; window.speechSynthesis.cancel(); const msg = new SpeechSynthesisUtterance(text); msg.lang = 'zh-TW'; msg.rate = 0.8; window.speechSynthesis.speak(msg); }
 
-        (function init() { refreshDropdown(); })();
+        (function init() { refreshDropdown(); refreshTargetCards(); })();
 
-        // 管理邏輯
-        function handleSelectChange() {
-            const val = document.getElementById('lessonSelect').value;
-            if (val) {
-                document.getElementById('editArea').classList.remove('hidden');
-                document.getElementById('currentLessonTitle').innerText = `📍 單元：${val}`;
-                document.getElementById('wordsInput').value = db[val] || "";
-                refreshTargetCards();
-            } else {
-                document.getElementById('editArea').classList.add('hidden');
-            }
+        // 學習模式分頁切換
+        function setStudyMode(mode) {
+            studyMode = mode;
+            document.getElementById('subtab-view').classList.toggle('active', mode === 'view');
+            document.getElementById('subtab-quiz').classList.toggle('active', mode === 'quiz');
+            document.getElementById('viewModeArea').classList.toggle('hidden', mode === 'quiz');
+            document.getElementById('quizModeArea').classList.toggle('hidden', mode === 'view');
+            updateFlashcard();
         }
 
-        function addNewLesson() {
-            const name = prompt("請輸入新單元名稱：");
-            if (!name) return;
-            if (db[name] !== undefined) { alert("此單元已存在"); return; }
-            db[name] = "";
-            localStorage.setItem(DB_KEY, JSON.stringify(db));
-            refreshDropdown();
-            document.getElementById('lessonSelect').value = name;
-            handleSelectChange();
-        }
-
-        function saveData() {
-            const name = document.getElementById('lessonSelect').value;
-            if (!name) return;
-            db[name] = document.getElementById('wordsInput').value.trim();
-            localStorage.setItem(DB_KEY, JSON.stringify(db));
-            alert("儲存成功！");
-            refreshTargetCards();
-        }
-
-        function refreshDropdown() {
-            const select = document.getElementById('lessonSelect');
-            const current = select.value;
-            select.innerHTML = '<option value="">-- 請先選取或新增單元 --</option>';
-            Object.keys(db).sort().forEach(n => { select.innerHTML += `<option value="${n}">${n}</option>`; });
-            select.value = current;
-        }
-
-        // 遊戲等級連動邏輯
+        // 原有邏輯：課程管理與難度連動
         function handleDifficultyChange(val) {
             const size = parseInt(val);
             const errorInput = document.getElementById('maxErrorsInput');
-            errorInput.value = (size <= 4) ? 3 : 5;
+            errorInput.value = (size <= 6) ? 3 : 5;
             maxErrors = parseInt(errorInput.value);
         }
 
         function checkPassToEditErrors(input) {
-            if (prompt("管理密碼") === ADMIN_PASS) {
-                const newVal = prompt("修改錯誤上限：", input.value);
-                if (newVal) input.value = maxErrors = parseInt(newVal);
-            }
+            const pass = prompt("請輸入管理密碼以修改錯誤上限：");
+            if (pass === ADMIN_PASS) {
+                const newVal = prompt("請輸入新的錯誤上限次數：", input.value);
+                if (newVal && !isNaN(newVal)) { input.value = newVal; maxErrors = parseInt(newVal); }
+            } else if (pass !== null) { alert("密碼錯誤！"); }
         }
-
+        
         function refreshTargetCards() {
             const words = document.getElementById('wordsInput').value.split(/[,，\s\n]+/).filter(x => x);
             const container = document.getElementById('targetCards'); container.innerHTML = "";
             words.forEach(word => {
-                const card = document.createElement('div'); card.className = 'target-item'; card.innerText = word[0];
-                card.onclick = () => { document.querySelectorAll('.target-item').forEach(c => c.classList.remove('active')); card.classList.add('active'); manualSelectedChar = word[0]; };
+                const char = word[0];
+                const card = document.createElement('div'); card.className = 'target-item'; card.innerText = char;
+                card.onclick = () => { document.querySelectorAll('.target-item').forEach(c => c.classList.remove('active')); card.classList.add('active'); manualSelectedChar = char; document.getElementById('manualTarget').value = ""; };
                 container.appendChild(card);
             });
         }
 
-        // 學習模式邏輯
+        function clearCardSelection() { document.querySelectorAll('.target-item').forEach(c => c.classList.remove('active')); manualSelectedChar = ""; }
+        function toggleConfusionModal() { document.getElementById('confusionModal').classList.toggle('hidden'); }
+        function refreshDropdown() { const select = document.getElementById('lessonSelect'); select.innerHTML = '<option value="">-- 選取課程 --</option>'; Object.keys(db).sort().forEach(name => { select.innerHTML += `<option value="${name}">${name}</option>`; }); }
+        function addNewLesson() { const name = prompt("請輸入新課程名稱："); if (!name) return; db[name] = ""; localStorage.setItem(DB_KEY, JSON.stringify(db)); refreshDropdown(); document.getElementById('lessonSelect').value = name; loadLesson(); }
+        function loadLesson() { const name = document.getElementById('lessonSelect').value; document.getElementById('wordsInput').value = name ? db[name] : ""; refreshTargetCards(); }
+        function saveData() { const name = document.getElementById('lessonSelect').value; if (!name) return alert("請先選取或新增課程"); db[name] = document.getElementById('wordsInput').value.trim(); localStorage.setItem(DB_KEY, JSON.stringify(db)); alert("儲存成功！"); }
+        function exportNamedData() { const n = prompt("匯出檔名：", document.getElementById('lessonSelect').value || "生字備份"); if(!n) return; const blob = new Blob([JSON.stringify(db, null, 2)], {type: "application/json"}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${n}.json`; a.click(); }
+        function importData(e) { const reader = new FileReader(); reader.onload = (ev) => { db = {...db, ...JSON.parse(ev.target.result)}; localStorage.setItem(DB_KEY, JSON.stringify(db)); refreshDropdown(); }; reader.readAsText(e.target.files[0]); }
+        function renameWithPass() { const s = document.getElementById('lessonSelect'); if(!s.value || prompt("管理密碼") !== ADMIN_PASS) return; const n = prompt("新名稱", s.value); if(n) { db[n]=db[s.value]; delete db[s.value]; localStorage.setItem(DB_KEY, JSON.stringify(db)); refreshDropdown(); s.value=n; } }
+        function deleteWithPass() { const n = document.getElementById('lessonSelect').value; if(!n || prompt("管理密碼") !== ADMIN_PASS) return; if(confirm("確定刪除？")) { delete db[n]; localStorage.setItem(DB_KEY, JSON.stringify(db)); refreshDropdown(); document.getElementById('wordsInput').value=""; refreshTargetCards(); } }
+
         function switchTab(mode) {
-            document.getElementById('tab-study').classList.toggle('active', mode === 'study');
-            document.getElementById('tab-game').classList.toggle('active', mode === 'game');
-            document.getElementById('studyConfig').classList.toggle('hidden', mode === 'game');
-            document.getElementById('gameConfig').classList.toggle('hidden', mode === 'study');
+            const isStudy = mode === 'study';
+            document.getElementById('tab-study').classList.toggle('active', isStudy);
+            document.getElementById('tab-game').classList.toggle('active', !isStudy);
+            document.getElementById('studyConfig').classList.toggle('hidden', !isStudy);
+            document.getElementById('gameConfig').classList.toggle('hidden', isStudy);
+        }
+
+        function changeSpeed(s) { 
+            currentSpeed = s; 
+            document.querySelectorAll('.speed-btn').forEach(b => b.style.background = '#eee');
+            event.target.style.background = 'var(--p-blue)';
+            updateFlashcard(); 
         }
 
         function startStudy() {
@@ -262,94 +289,104 @@
                 const div = document.createElement('div'); div.className = 'pick-item'; div.innerText = w;
                 div.onclick = () => { studyIdx = i; updateFlashcard(); }; picker.appendChild(div);
             });
-            studyIdx = 0; setStudyMode('view'); 
-        }
-
-        function setStudyMode(mode) {
-            studyMode = mode;
-            document.getElementById('subtab-view').classList.toggle('active', mode === 'view');
-            document.getElementById('subtab-quiz').classList.toggle('active', mode === 'quiz');
-            document.getElementById('viewModeArea').classList.toggle('hidden', mode === 'quiz');
-            document.getElementById('quizModeArea').classList.toggle('hidden', mode === 'view');
-            updateFlashcard();
+            studyIdx = 0; 
+            setStudyMode('view'); 
         }
 
         function updateFlashcard() {
+            if (!studyList.length) return;
             const char = studyList[studyIdx][0];
             document.getElementById('currentWord').innerText = studyList[studyIdx];
             document.querySelectorAll('.pick-item').forEach((item, i) => item.classList.toggle('active', i === studyIdx));
             
-            // 重要：移除加粗，調整 Hanzi Writer 參數
-            const commonOptions = { width: 300, height: 300, padding: 25, strokeColor: '#333' };
-
             if (studyMode === 'view') {
                 document.getElementById('writer-container').innerHTML = "";
                 mainWriter = HanziWriter.create('writer-container', char, { 
-                    ...commonOptions, 
-                    strokeAnimationSpeed: currentSpeed,
-                    delayBetweenStrokes: 300/currentSpeed 
+                    width: 300, height: 300, padding: 25, strokeColor: '#333', 
+                    strokeAnimationSpeed: currentSpeed, delayBetweenStrokes: 300/currentSpeed 
                 }).animateCharacter(); 
             } else {
                 document.getElementById('quiz-container').innerHTML = "";
-                mainWriter = HanziWriter.create('quiz-container', char, { 
-                    ...commonOptions, 
-                    showOutline: true,
-                    outlineColor: '#ddd' // 淺色外框不加粗
-                }).quiz(); 
+                mainWriter = HanziWriter.create('quiz-container', char, {
+                    width: 300, height: 300, padding: 25, showOutline: true, strokeColor: '#2b6cb0'
+                });
+                mainWriter.quiz(); 
             }
             speak(studyList[studyIdx], true);
         }
 
-        // 遊戲核心邏輯
         function startGame() {
             const pool = document.getElementById('wordsInput').value.split(/[,，\s\n]+/).filter(x => x);
-            if(!pool.length) return alert("請輸入生字");
-            targetChar = document.getElementById('manualTarget').value.trim() || manualSelectedChar || pool[0][0];
+            if(!pool.length) return alert("請先輸入生字");
+            const inputVal = document.getElementById('manualTarget').value.trim();
+            targetChar = inputVal || manualSelectedChar || pool[Math.floor(Math.random() * pool.length)][0];
+            const confusionPool = document.getElementById('confusionInput').value.split(/[,，\s\n]+/).filter(x => x);
             const size = parseInt(document.getElementById('gridSize').value);
-            targetTotal = size; foundNum = 0; errorCount = 0;
-            maxErrors = parseInt(document.getElementById('maxErrorsInput').value);
             
+            targetTotal = size; foundNum = 0; errorCount = 0;
+            maxErrors = parseInt(document.getElementById('maxErrorsInput').value) || 5;
+            document.getElementById('errorVal').innerText = "0";
+            document.getElementById('maxErrorDisplay').innerText = maxErrors;
+
+            let gridPool = [];
+            for(let i=0; i<targetTotal; i++) gridPool.push(targetChar);
+            while(gridPool.length < size * size) {
+                let r = (confusionPool.length > 0 && Math.random() > 0.5) ? confusionPool[Math.floor(Math.random() * confusionPool.length)][0] : pool[Math.floor(Math.random() * pool.length)][0];
+                gridPool.push(r === targetChar ? "★" : r);
+            }
+            gridPool.sort(() => Math.random() - 0.5);
             document.getElementById('editorPanel').classList.add('hidden');
             document.getElementById('gameView').classList.remove('hidden');
             document.getElementById('gameTarget').innerText = targetChar;
             document.getElementById('status').innerText = `剩餘：${targetTotal}`;
-            
             const container = document.getElementById('grid'); container.innerHTML = "";
             container.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
-            
-            let gridPool = Array(targetTotal).fill(targetChar);
-            while(gridPool.length < size*size) gridPool.push(pool[Math.floor(Math.random()*pool.length)][0]);
-            gridPool.sort(() => Math.random() - 0.5);
-            
             gridPool.forEach(char => {
-                const div = document.createElement('div'); div.className = 'cell'; div.innerText = char;
-                div.style.fontSize = size > 6 ? "30px" : "45px";
+                const div = document.createElement('div'); div.className = 'cell'; 
+                div.style.fontSize = size >= 9 ? "24px" : size >= 7 ? "32px" : "48px";
+                div.innerText = char;
+                if(char === targetChar) div.dataset.target = "true";
                 div.onclick = () => {
                     speak(char);
                     if(char === targetChar && !div.classList.contains('correct')) {
                         playTone(800, 0.1); div.classList.add('correct'); foundNum++;
-                        document.getElementById('status').innerText = `剩餘：${targetTotal-foundNum}`;
+                        document.getElementById('status').innerText = `剩餘：${targetTotal - foundNum}`;
                         if(foundNum === targetTotal) handleWin();
-                    } else if(char !== targetChar && !div.classList.contains('wrong')) {
+                    } else if (char !== targetChar && !div.classList.contains('wrong')) {
                         playTone(300, 0.2); div.classList.add('wrong');
                         errorCount++;
-                        if(errorCount >= maxErrors) alert("錯誤太多次囉，再加把勁！");
+                        document.getElementById('errorVal').innerText = errorCount;
+                        if(errorCount >= maxErrors) handleGameOver();
                     }
                 };
                 container.appendChild(div);
             });
+            gameStart = Date.now();
+            gameTimer = setInterval(() => { document.getElementById('timeVal').innerText = ((Date.now() - gameStart) / 1000).toFixed(1); }, 100);
+            setTimeout(() => speak("請找出" + targetChar, true), 500);
         }
 
-        function handleWin() { confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } }); document.getElementById('winMsg').innerText = "找到所有「" + targetChar + "」了！"; document.getElementById('winOverlay').style.display = 'flex'; }
-        function exitToMenu() { document.querySelectorAll('.main-container').forEach(c => c.classList.add('hidden')); document.getElementById('editorPanel').classList.remove('hidden'); }
-        function closeWinOverlay() { document.getElementById('winOverlay').style.display = 'none'; exitToMenu(); }
-        function exportNamedData() { const blob = new Blob([JSON.stringify(db, null, 2)], {type: "application/json"}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `生字備份.json`; a.click(); }
-        function importData(e) { const reader = new FileReader(); reader.onload = (ev) => { db = JSON.parse(ev.target.result); localStorage.setItem(DB_KEY, JSON.stringify(db)); refreshDropdown(); alert("匯入成功！"); }; reader.readAsText(e.target.files[0]); }
-        function renameWithPass() { /* 保持密碼密碼邏輯 */ }
-        function deleteWithPass() { /* 保持密碼邏輯 */ }
-        function toggleConfusionModal() { document.getElementById('confusionModal').classList.toggle('hidden'); }
-        function clearCardSelection() { document.querySelectorAll('.target-item').forEach(c => c.classList.remove('active')); manualSelectedChar = ""; }
-        function changeSpeed(s) { currentSpeed = s; updateFlashcard(); }
+        function handleWin() {
+            clearInterval(gameTimer);
+            const final = document.getElementById('timeVal').innerText;
+            document.getElementById('winTitle').innerText = "🎊 任務完成！ 🎊";
+            document.getElementById('winMsg').innerHTML = `總耗時：${final} 秒<br>按錯次數：${errorCount} 次`;
+            setTimeout(() => { document.querySelectorAll('.cell[data-target="true"]').forEach(el => el.classList.add('reveal-bounce')); playTone(523, 0.1); }, 500);
+            setTimeout(() => { confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } }); document.getElementById('winOverlay').style.display = 'flex'; }, 2000);
+        }
+
+        function handleGameOver() {
+            clearInterval(gameTimer);
+            playTone(150, 0.5);
+            document.getElementById('winTitle').innerText = "❌ 挑戰結束 ❌";
+            document.getElementById('winTitle').style.color = "#fa5252";
+            document.getElementById('winMsg').innerHTML = `按錯超過 ${maxErrors} 次囉！<br>別灰心，再試一次！`;
+            document.querySelectorAll('.cell[data-target="true"]').forEach(el => { el.style.border = "3px solid #fa5252"; el.style.background = "#fff5f5"; });
+            setTimeout(() => { document.getElementById('winOverlay').style.display = 'flex'; }, 1000);
+        }
+
+        function exitToMenu() { clearInterval(gameTimer); document.querySelectorAll('.main-container').forEach(c => c.classList.add('hidden')); document.getElementById('editorPanel').classList.remove('hidden'); }
+        function closeWinOverlay() { document.getElementById('winOverlay').style.display = 'none'; document.getElementById('winTitle').style.color = "var(--accent-orange)"; exitToMenu(); }
     </script>
 </body>
 </html>
